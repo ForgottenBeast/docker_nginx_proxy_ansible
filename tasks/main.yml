@@ -1,0 +1,85 @@
+- include: requirements.yml
+  become: True
+  tags:
+   - docker_install
+
+- name: "Test if docker is installed"
+  tags: wp_deploy
+  become: True
+  command: which docker
+  ignore_errors: True
+  register: docker_present
+
+- name: "Installing docker"
+  include: docker_install.yml
+  become: True
+  tags: docker_install
+  when: docker_present|failed
+
+- name: "Write docker-compose"
+  tags: 
+    - nginx_deploy
+  template:
+    src: docker-compose.j2
+    dest: /tmp/nginx_docker_proxy/docker-compose.yml
+
+- name: "Deploy nginx proxy"
+  docker_service:
+    state: present
+    project_src: /tmp/nginx_docker_proxy
+
+- name: "Remove docker-compose folder"
+  become: True
+  tags:
+    - nginx_deploy
+  file:
+    name: /tmp/nginx_docker_proxy
+    state: absent
+
+- name: "Checking cert obtention"
+  tags:
+    - firewall
+    - nginx_deploy
+  become: True
+  command: docker logs nginx_docker_proxy_letsencrypt_nginx_companion_1
+  when: SSL == True
+  register: cert
+  until: cert.stderr.find("Saving cert.pem") != -1
+  retries: 360
+  delay: 5
+
+- name: "Certs obtained!"
+  tags: firewall
+  pause:
+    prompt: |
+      "You can now enable your site on cloudflare"
+  when: CLOUDFLARE == True and SSL == True
+
+- include: firewall.yml
+  become: True
+  tags: firewall
+  when: CLOUDFLARE == True
+
+- name: "Pause on cloudflare"
+  become: True
+  when: CLOUDFLARE == True
+  tags: renew
+  pause:
+    prompt: |
+      "Before renewing your certificate, please pause your website on cloudflare so letsencrypt
+      can reach it."
+
+- name: "Checking the dns records"
+  become: True
+  tags: renew
+  command: nslookup {{ wordpress_domain_name }}
+  register: result
+  until: result.stdout.find(wordpress_ip_addr) != -1
+  retries: 360
+  delay: 5
+
+- name: "start cert renewal procedure"
+  include: renew.yml
+  become: True
+  tags: renew
+

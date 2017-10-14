@@ -4,7 +4,7 @@
    - docker_install
 
 - name: "Test if docker is installed"
-  tags: wp_deploy
+  tags: nginx_deploy
   become: True
   command: which docker
   ignore_errors: True

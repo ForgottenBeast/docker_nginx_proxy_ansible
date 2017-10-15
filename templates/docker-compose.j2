@@ -5,6 +5,7 @@ services:
   nginx:
     image: jwilder/nginx-proxy
     restart: always
+    network_mode: bridge
     ports:
       - "{{host_ip_addr}}:443:443"
       - "{{host_ip_addr}}:80:80"
@@ -17,6 +18,7 @@ services:
   letsencrypt_nginx_companion:
     image: jrcs/letsencrypt-nginx-proxy-companion
     restart: always
+    network_mode: bridge
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
     volumes_from:

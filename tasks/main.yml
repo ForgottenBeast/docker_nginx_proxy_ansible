@@ -16,24 +16,29 @@
   tags: docker_install
   when: docker_present|failed
 
+- name: "Create dest folder"
+  file:
+    state: directory
+    name: "/tmp/nginxproxy"
+
 - name: "Write docker-compose"
   tags: 
     - nginx_deploy
   template:
     src: docker-compose.j2
-    dest: /tmp/nginx_docker_proxy/docker-compose.yml
+    dest: /tmp/nginxproxy/docker-compose.yml
 
 - name: "Deploy nginx proxy"
   docker_service:
     state: present
-    project_src: /tmp/nginx_docker_proxy
+    project_src: /tmp/nginxproxy
 
 - name: "Remove docker-compose folder"
   become: True
   tags:
     - nginx_deploy
   file:
-    name: /tmp/nginx_docker_proxy
+    name: /tmp/nginxproxy
     state: absent
 
 - name: "Checking cert obtention"
@@ -41,7 +46,7 @@
     - firewall
     - nginx_deploy
   become: True
-  command: docker logs nginx_docker_proxy_letsencrypt_nginx_companion_1
+  command: docker logs nginxproxy_letsencrypt_nginx_companion_1
   when: SSL == True
   register: cert
   until: cert.stderr.find("Saving cert.pem") != -1
@@ -68,15 +73,6 @@
     prompt: |
       "Before renewing your certificate, please pause your website on cloudflare so letsencrypt
       can reach it."
-
-- name: "Checking the dns records"
-  become: True
-  tags: renew
-  command: nslookup {{ wordpress_domain_name }}
-  register: result
-  until: result.stdout.find(wordpress_ip_addr) != -1
-  retries: 360
-  delay: 5
 
 - name: "start cert renewal procedure"
   include: renew.yml

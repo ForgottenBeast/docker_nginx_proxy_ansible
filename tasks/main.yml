@@ -9,6 +9,7 @@
 
 - name: "Creating a tor hidden service private key if there is none..."
   include: gen_rsa.yml
+  tags: nginx_deploy
   when: tor_hidden_service_private_key == None and
         TOR_HH == True
 

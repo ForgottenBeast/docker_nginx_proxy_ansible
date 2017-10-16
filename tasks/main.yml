@@ -3,6 +3,8 @@
     name: proxy_net
 
 - name: "Create dest folder"
+  tags: 
+    - nginx_deploy
   file:
     state: directory
     name: "/tmp/nginxproxy"
@@ -21,9 +23,29 @@
     dest: /tmp/nginxproxy/docker-compose.yml
 
 - name: "Deploy nginx proxy"
+  tags: 
+    - nginx_deploy
   docker_service:
     state: present
     project_src: /tmp/nginxproxy
+
+
+- name: "Waiting for tor container to come up..."
+  tags: nginx_deploy
+  when: TOR_HH == True
+  pause:
+    seconds: 10
+
+- name: "Getting onion url..."
+  tags: nginx_deploy
+  command: docker exec -i nginxproxy_torhh_1 onions
+  register: onions
+  when: TOR_HH == True
+
+- debug:
+    msg: "Onion url: {{ onions.stdout }}"
+  when: TOR_HH == True
+  tags: nginx_deploy
 
 - name: "Remove docker-compose folder"
   become: True

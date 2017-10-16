@@ -1,3 +1,5 @@
 host_ip_addr: '1.2.3.4'
 SSL: False
 CLOUDFLARE: False
+TOR_HH: False
+tor_hidden_service_private_key:

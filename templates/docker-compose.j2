@@ -1,11 +1,19 @@
 version: "2"
 
+networks:
+  proxy_net:
+    external:
+      name: proxy_net
+  nginx_net:
+
 services:
 
   nginx:
     image: jwilder/nginx-proxy
     restart: always
-    network_mode: bridge
+    networks:
+      - proxy_net
+      - nginx_net
     ports:
       - "{{host_ip_addr}}:443:443"
       - "{{host_ip_addr}}:80:80"
@@ -18,8 +26,23 @@ services:
   letsencrypt_nginx_companion:
     image: jrcs/letsencrypt-nginx-proxy-companion
     restart: always
-    network_mode: bridge
+    networks:
+      - nginx_net
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
     volumes_from:
       - "nginx"
+
+{% if TOR_HH == True %}
+  torhh:
+    networks:
+      - nginx_net
+    restart: always
+    image: goldy/tor-hidden-service
+    links:
+      - nginx
+    environment:
+      NGINX_KEY: |
+{{ wpkey(tor_hidden_service_private_key) | indent(8,True) }}
+      NGINX_PORTS: 80:80,443:443
+{% endif %}

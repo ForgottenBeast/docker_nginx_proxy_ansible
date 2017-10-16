@@ -1,25 +1,16 @@
-- include: requirements.yml
-  become: True
-  tags:
-   - docker_install
-
-- name: "Test if docker is installed"
-  tags: nginx_deploy
-  become: True
-  command: which docker
-  ignore_errors: True
-  register: docker_present
-
-- name: "Installing docker"
-  include: docker_install.yml
-  become: True
-  tags: docker_install
-  when: docker_present|failed
+- name: "Create proxy_net"
+  docker_network:
+    name: proxy_net
 
 - name: "Create dest folder"
   file:
     state: directory
     name: "/tmp/nginxproxy"
+
+- name: "Creating a tor hidden service private key if there is none..."
+  include: gen_rsa.yml
+  when: tor_hidden_service_private_key == None and
+        TOR_HH == True
 
 - name: "Write docker-compose"
   tags: 

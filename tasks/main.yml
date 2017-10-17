@@ -1,4 +1,6 @@
 - name: "Create proxy_net"
+  tags: nginx_deploy
+  become: True
   docker_network:
     name: proxy_net
 
@@ -23,6 +25,7 @@
     dest: /tmp/nginxproxy/docker-compose.yml
 
 - name: "Deploy nginx proxy"
+  become: True
   tags: 
     - nginx_deploy
   docker_service:
@@ -38,6 +41,7 @@
 
 - name: "Getting onion url..."
   tags: nginx_deploy
+  become: True
   command: docker exec -i nginxproxy_torhh_1 onions
   register: onions
   when: TOR_HH == True
@@ -54,25 +58,6 @@
   file:
     name: /tmp/nginxproxy
     state: absent
-
-- name: "Checking cert obtention"
-  tags:
-    - firewall
-    - nginx_deploy
-  become: True
-  command: docker logs nginxproxy_letsencrypt_nginx_companion_1
-  when: SSL == True
-  register: cert
-  until: cert.stderr.find("Saving cert.pem") != -1
-  retries: 360
-  delay: 5
-
-- name: "Certs obtained!"
-  tags: firewall
-  pause:
-    prompt: |
-      "You can now enable your site on cloudflare"
-  when: CLOUDFLARE == True and SSL == True
 
 - include: firewall.yml
   become: True

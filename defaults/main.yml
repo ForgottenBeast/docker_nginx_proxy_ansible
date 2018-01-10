@@ -3,3 +3,9 @@ SSL: False
 CLOUDFLARE: False
 TOR_HH: False
 tor_hidden_service_private_key:
+
+#where should the nginx.tmpl used by dockergen be put
+nginx_tmpl_location: /root/nginx_templates
+
+#where the logfiles will be symlinked
+nginx_logs_location: /var/log/nginx_container.log

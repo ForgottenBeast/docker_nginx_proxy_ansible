@@ -11,6 +11,14 @@
     state: directory
     name: "/tmp/nginxproxy"
 
+- name: "Create nginx template file location"
+  become: True
+  tags:
+    - nginx_deploy
+  file:
+    state: directory
+    name: "{{nginx_tmpl_location}}"
+
 - name: "Creating a tor hidden service private key if there is none..."
   include: gen_rsa.yml
   tags: nginx_deploy
@@ -24,6 +32,11 @@
     src: docker-compose.j2
     dest: /tmp/nginxproxy/docker-compose.yml
 
+- name: "Write nginx.tmpl"
+  copy:
+    src: nginx.tmpl
+    dest: "{{nginx_tmpl_location}}/nginx.tmpl"
+
 - name: "Deploy nginx proxy"
   become: True
   tags: 
@@ -31,6 +44,15 @@
   docker_service:
     state: present
     project_src: /tmp/nginxproxy
+
+- name: "Get log file location"
+  become: True
+  command: docker inspect -f {{.LogPath}} nginx
+  register: log_loc
+
+- name: "Create symlink to logfile"
+  become: True
+  command: "ln -s {{log_loc.stdout}} {{nginx_logs_location}}"
 
 - name: "add upload size directives"
   tags: nginx_deploy

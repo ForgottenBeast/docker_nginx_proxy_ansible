@@ -33,6 +33,7 @@
     dest: /tmp/nginxproxy/docker-compose.yml
 
 - name: "Write nginx.tmpl"
+  become: True
   copy:
     src: nginx.tmpl
     dest: "{{nginx_tmpl_location}}/nginx.tmpl"
@@ -47,7 +48,7 @@
 
 - name: "Get log file location"
   become: True
-  command: docker inspect -f {{.LogPath}} nginx
+  command: docker inspect -f {%raw%}{{.LogPath}}{%endraw%} nginx
   register: log_loc
 
 - name: "Create symlink to logfile"
@@ -56,9 +57,10 @@
 
 - name: "add upload size directives"
   tags: nginx_deploy
+  become: True
   command: |
-    docker exec nginxproxy_nginx_1 bash -c 'echo "server_tokens off;" >> /etc/nginx/conf.d/default.conf'
-    docker exec nginxproxy_nginx_1 bash -c 'echo "client_max_body_size 100m;" >> /etc/nginx/conf.d/default.conf'
+    docker exec nginx bash -c 'echo "server_tokens off;" >> /etc/nginx/conf.d/default.conf'
+    docker exec nginx bash -c 'echo "client_max_body_size 100m;" >> /etc/nginx/conf.d/default.conf'
 
 - name: "Waiting for tor container to come up..."
   tags: nginx_deploy

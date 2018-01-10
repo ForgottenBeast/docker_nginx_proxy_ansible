@@ -25,7 +25,7 @@ services:
       - "{{nginx_tmpl_location}}:/etc/docker-gen/templates/"
 
   nginx:
-    image: nodeintegration/nginx-modsecurity
+    image: nginx
     restart: always
     container_name: nginx
     networks:

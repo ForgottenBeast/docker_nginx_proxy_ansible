@@ -19,6 +19,13 @@
     state: directory
     name: "{{nginx_tmpl_location}}"
 
+- name: "Copy nginx template file"
+  become: True
+  tags: nginx_deploy
+  copy:
+    src: nginx.tmpl
+    dest: "{{nginx_tmpl_location}}/nginx.tmpl"
+
 - name: "Creating a tor hidden service private key if there is none..."
   include: gen_rsa.yml
   tags: nginx_deploy

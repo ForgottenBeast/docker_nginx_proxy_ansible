@@ -1,4 +1,8 @@
 SSL: False
+letsencrypt: False #get cert from letsencrypt
+
+dest_cert_folder: "/nginx_certs"
+
 CLOUDFLARE: False
 TOR_HH: False
 tor_hidden_service_private_key:
@@ -8,3 +12,23 @@ nginx_tmpl_location: /root/nginx_templates
 
 #where the logfiles will be symlinked
 nginx_logs_location: /var/log/nginx_container.log
+
+#self signed certificates
+private_keys_paths:
+  - "/local/pk1"
+
+self_signed_certificates_paths:
+  - "/local/cert1"
+
+#this will generate private keys
+generate_keys_for_domains:
+  - domain1.key
+  - domain2.key
+
+#this will generate certificates corresponding to private keys defined above
+generate_certs_for_domains:
+  domain1.key:
+    - subdomain1
+    - subdomain2
+  domain2.key:
+    - subdomain3

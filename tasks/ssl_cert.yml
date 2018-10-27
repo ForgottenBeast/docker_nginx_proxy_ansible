@@ -1,0 +1,12 @@
+- name: "Create cert folder"
+  tags:
+    - nginx_deploy
+  file:
+    state: directory
+    name: "{{dest_cert_folder}}"
+
+- name: "Generate private keys"
+  tags: nginx_deploy
+  openssl_privatekey:
+    path: "{{dest_cert_folder}}/{{item}}.pem"
+  with_items: "{{generate_keys_for_domains}}"

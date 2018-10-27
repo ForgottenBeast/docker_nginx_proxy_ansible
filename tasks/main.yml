@@ -4,13 +4,19 @@
   docker_network:
     name: proxy_net
 
+- name: "SSL setup"
+  import_tasks: ssl_cert.yml
+  tags:
+    - nginx_deploy
+  when: SSL == True and letsencrypt == False
+
 - name: "Create dest folder"
   tags: 
     - nginx_deploy
   file:
     state: directory
     name: "/tmp/nginxproxy"
-
+ 
 - name: "Create nginx template file location"
   become: True
   tags:

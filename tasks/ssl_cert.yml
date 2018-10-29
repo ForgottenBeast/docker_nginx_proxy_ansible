@@ -1,12 +1,22 @@
-- name: "Create cert folder"
-  tags:
-    - nginx_deploy
-  file:
-    state: directory
-    name: "{{dest_cert_folder}}"
-
-- name: "Generate private keys"
+- block:
   tags: nginx_deploy
-  openssl_privatekey:
-    path: "{{dest_cert_folder}}/{{item}}.pem"
-  with_items: "{{generate_keys_for_domains}}"
+
+  - name: "Create cert folder"
+    file:
+      state: directory
+      name: "{{dest_cert_folder}}"
+  
+  - name: "Generate private keys"
+    openssl_privatekey:
+      path: "{{dest_cert_folder}}/{{item}}.pem"
+    loop:
+      - generate_keys_for_domains
+
+  - name: "Generate csrs"
+    
+
+  - name: "Generate certificates"
+    openssl_certificate:
+      path: "{{dest_cert_folder}}/{{item}}.crt"
+      privatekey_path: "{{dest_cert_folder}}/{{item}}.pem"
+      csr_path: 

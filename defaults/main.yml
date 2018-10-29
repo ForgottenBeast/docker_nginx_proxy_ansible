@@ -13,22 +13,15 @@ nginx_tmpl_location: /root/nginx_templates
 #where the logfiles will be symlinked
 nginx_logs_location: /var/log/nginx_container.log
 
-#self signed certificates
-private_keys_paths:
-  - "/local/pk1"
-
-self_signed_certificates_paths:
-  - "/local/cert1"
-
 #this will generate private keys
 generate_keys_for_domains:
-  - domain1.key
-  - domain2.key
+  - domain1
+  - domain2
 
 #this will generate certificates corresponding to private keys defined above
 generate_certs_for_domains:
-  domain1.key:
+  domain1:
     - subdomain1
     - subdomain2
-  domain2.key:
+  domain2:
     - subdomain3
